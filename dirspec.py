@@ -32,11 +32,11 @@ def dirspec(ID, SM, EP, Options_=None):
     ID			An instrument data structure containing the measured data
     SM   		A spectral matrix structure; data in field SM.S is ignored.
     EP		    The estimation parameters structure. For default values enter EP as []
-    [options]  options entered as cell array with parameter/value pairs: e.g.{'MESSAGE',1,'PLOTTYPE',2};
+    [options]  options entered as dictionary with key/value pairs: e.g.{'MESSAGE':1,'PLOTTYPE':2};
                     Available options with default values:
-                        'MESSAGE',1,    Level of screen display: 0,1,2 (increasing output)
-                        'PLOTTYPE',1,   Plot type: 0 none, 1 3d surface, 2 polar type plot, 3 3d surface(compass angles), 4 polar plot(compass angles)
-                        'FILEOUT',''  	 Filename for output file: empty string means no file output
+                        'MESSAGE':1,    Level of screen display: 0,1,2 (increasing output)
+                        'PLOTTYPE:,1,   Plot type: 0 none, 1 3d surface, 2 polar type plot, 3 3d surface(compass angles), 4 polar plot(compass angles)
+                        'FILEOUT':''  	 Filename for output file: empty string means no file output
                     
     Input structures ID and SM are required. Either [EP] or [options] can be included but must be in order if both are included.
     "help data_structures" for information on the DIWASP data structures
@@ -64,6 +64,7 @@ def dirspec(ID, SM, EP, Options_=None):
     if len(EP) == 0: return [], []
 
     if nopts != 0:
+        """
         if nopts % 2 != 0:
             warnings.warn('Options must be in Name/Value pairs - setting to '
                 'defaults')
@@ -72,6 +73,9 @@ def dirspec(ID, SM, EP, Options_=None):
                 arg = Options_[2 * i + 1]
                 field = Options_[2 * i]
                 Options[field] = arg
+        """
+        for key in Options_:
+            Options[key] = Options_[key]
 
     ptype = Options['PLOTTYPE']; displ = Options['MESSAGE']
 
@@ -81,7 +85,7 @@ def dirspec(ID, SM, EP, Options_=None):
     ndat, szd = np.shape(ID['data'])
 
     #get resolution of FFT - if not specified, calculate a sensible value
-    if len(EP['nfft']) == 0:
+    if ~np.any(EP['nfft']):
         nfft = int(2 ** (8 + np.round(np.log2(ID['fs']))))
         EP['nfft'] = nfft
     else:
@@ -99,7 +103,7 @@ def dirspec(ID, SM, EP, Options_=None):
     print('wavenumbers')
     wns = wavenumber(2  * np.pi * F, ID['depth'] * np.ones(np.shape(F)))
     pidirs = np.linspace(-np.pi, np.pi - 2 * np.pi / EP['dres'], 
-        num=2 * np.pi / (2 * np.pi / EP['dres']))
+        num=int(2 * np.pi / (2 * np.pi / EP['dres'])))
 
     #calculate transfer parameters
     print('transfer parameters\n')

@@ -37,6 +37,7 @@ def infospec(SM):
     I = np.argmax(np.real(np.sum(SM['S'], 0)))
     Dp = SM['dirs'][I]
 
+    """
     print('Infospec::')
     print('Significant wave height: {}'.format(H))
     print('Peak period: {}'.format(Tp))
@@ -44,6 +45,10 @@ def infospec(SM):
         'compass bearing'.format(DTp, compangle(DTp, SM['xaxisdir'])))
     print('Dominant direction: {} axis angle / {} ' 
         'compass bearing'.format(Dp, compangle(Dp, SM['xaxisdir'])))
+    """
+
+    #make dictionary of output and return
+    return {'H_m0': H, 'Tp': Tp, 'DTp': DTp, 'Dp': Dp}
 
 def compangle(dirs, xaxisdir):
     return (180 + xaxisdir * np.ones(np.shape(dirs)) - dirs) % 360
