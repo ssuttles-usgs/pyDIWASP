@@ -18,11 +18,11 @@ def IMLM(xps, trm, kx, Ss, pidirs, miter, displ):
     if displ < 2:
         warnings.simplefilter('ignore')
     
-    Htemp = np.empty((ddirs, szd, szd), dtype='complex128')
-    iHtemp = np.empty((ddirs, szd, szd), dtype='complex128')
-    ixps = np.empty((szd, szd), dtype='complex128')
-    S = np.empty((ffreqs, ddirs), dtype='complex128')
-
+    Htemp = np.zeros((ddirs, szd, szd), dtype='complex128')
+    iHtemp = np.zeros((ddirs, szd, szd), dtype='complex128')
+    ixps = np.zeros((szd, szd), dtype='complex128')
+    S = np.zeros((ffreqs, ddirs), dtype='complex128')
+    #E = np.empty((1,ddirs), dtype='complex128')
     for ff in range(ffreqs):
         if displ >= 1:
             print('calculating for frequency {} of {}'.format(ff + 1, ffreqs))
@@ -63,16 +63,14 @@ def IMLM(xps, trm, kx, Ss, pidirs, miter, displ):
             T = 1 / Sftmp
             
             kappa = 1 / (ddir * np.sum(T))
-            T = T * kappa
+            T = kappa*T
             
             ei = gamma * ((Eo - T) + alpha * (T - Told))
             E = E + ei
             kappa = 1 / (ddir * np.sum(E))
-            E = E * kappa
-
-            
-        
-        S[ff, :] = Ss[0, ff] * E
+            E = kappa*E
+        #print(".")
+        S[ff, :] =  Ss[0, ff] * E.conj().T
 
         
     

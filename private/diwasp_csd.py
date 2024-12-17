@@ -1,6 +1,7 @@
 import numpy as np
 #from scipy.signal import spectral
 from scipy import signal
+from matplotlib.mlab import csd
 
 def diwasp_csd(x, y, nfft, fs):
     """
@@ -13,15 +14,19 @@ def diwasp_csd(x, y, nfft, fs):
     flag = 1
 
     if flag == 1:
-        f, S = signal.csd(y, x, fs=fs, window='hamming', nperseg=nfft, 
+        #print("switch xy")
+        f, S = signal.csd(x, y, fs=fs, window='hamming', nperseg=nfft, 
             noverlap=0, nfft=nfft, detrend=False)
+        #print("using mlab.csd")
+        #S, f = csd(x,y,NFFT=nfft,noverlap=0,window=np.hamming(nfft),Fs=fs)
+        
     else:
         hann = 0.5 * (1 - np.cos(2 * np.pi * np.arange(1, int(nfft / 2) + 1) / 
             (nfft + 1)))
         win = np.hstack((hann, np.flipud(hann)))
         nw = np.size(win)
         nseg = int(np.size(x) / nw)
-        S = np.zeros(nfft, dtype='complex128')
+        #S = np.zeros(nfft, dtype='complex128')
         for iseg in range(nseg):
             ind = nw * iseg + np.arange(nw)
             xw = win * x[ind]

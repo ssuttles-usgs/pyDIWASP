@@ -13,9 +13,11 @@ from private.pres import pres
 from private.elev import elev
 from private.wavenumber import wavenumber
 from private.IMLM import IMLM
+from private.DFTM import DFTM
 from private.smoothspec import smoothspec
 from private.diwasp_csd import diwasp_csd
 from private.check_data import check_data
+from private.IMLM3 import IMLM3
 
 def dirspec(ID, SM, EP, Options_=None):
     """
@@ -93,7 +95,7 @@ def dirspec(ID, SM, EP, Options_=None):
     if nfft > ndat: raise Exception('Data length of {} too small'.format(dat))
 
     #calculate the cross-power spectra
-    xps = np.empty((szd, szd, int(nfft / 2)), 'complex128')
+    xps = np.zeros((szd, szd, int(nfft / 2)), dtype='complex128')
     for m in range(szd):
         for n in range(szd):
             xpstmp, Ftmp = diwasp_csd(data[:, m], data[:, n], nfft, ID['fs'])
@@ -107,8 +109,8 @@ def dirspec(ID, SM, EP, Options_=None):
 
     #calculate transfer parameters
     print('transfer parameters\n')
-    trm = np.empty((szd, nf, len(pidirs)))
-    kx = np.empty((szd, szd, nf, len(pidirs)))
+    trm = np.zeros((szd, nf, len(pidirs)))
+    kx = np.zeros((szd, szd, nf, len(pidirs)))
     for m in range(szd):
         trm[m, :, :] = eval(ID['datatypes'][m])(2 * np.pi * F, pidirs, wns, 
             ID['layout'][2, m], ID['depth'])
@@ -117,12 +119,15 @@ def dirspec(ID, SM, EP, Options_=None):
                 ID['layout'][0, m]) * np.cos(pidirs) + (ID['layout'][1, n] - 
                 ID['layout'][1, m]) * np.sin(pidirs))
 
-    Ss = np.empty((szd, nf), dtype='complex128')
+    Ss = np.zeros((szd, nf),dtype='complex128')
     for m in range(szd):
         tfn = trm[m, :, :]
         Sxps = xps[m, m, :]
-        Ss[m, :] = Sxps / (np.max(tfn, axis=1) * np.conj(np.max(tfn, axis=1)))
-    
+        Ss[m, :] = Sxps / (np.max(tfn.conj().T,axis=0) * np.conj(np.max(tfn.conj().T,axis=0)))
+    #print(xps[0,0,0])
+    #print(tfn[0,0])
+    #print(Sxps[0])
+    #print(Ss[0,0])
     ffs = np.logical_and(F >= np.min(SM['freqs']), F <= np.max(SM['freqs']))
     SM1 = dict()
     SM1['freqs'] = F[ffs]
@@ -135,7 +140,7 @@ def dirspec(ID, SM, EP, Options_=None):
     SM1['S'] = eval(EP['method'])(xps[:, :, ffs], trm[:, ffs, :], 
         kx[:, :, ffs, :], Ss[:, ffs], pidirs, EP['iter'], displ)
     SM1['S'][np.logical_or(np.isnan(SM1['S']), SM1['S'] < 0)] = 0
-
+    print(f"SM1.S sum = {np.sum(np.sum(SM1['S'], axis=1))}")
     #Interpolate onto user specified matrix
     print('\ninterpolating onto specified matrix...\n')
     SMout = interpspec(SM1, SM)
